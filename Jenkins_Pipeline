@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+    stages {
+     stage('stopping the deployment') {
+         steps {
+             sh '/usr/bin/sudo /usr/bin/pm2 stop /opt/deployment/react/build/ecosystem.config.js'
+             sh '/usr/bin/sudo rm -rf /opt/deployment/react/build/static/*'
+             sh '/usr/bin/sudo rm -rf /opt/deployment/react/build/*'
+             sh '/usr/bin/sudo rm -rf /opt/deployment/react/*'
+             sh '/usr/bin/sudo rm -rf /opt/checkout/*'
+         }
+       }
+     
+    
+     stage('clone'){
+         steps {
+             git 'https://github.com/kabirbaidhya/react-todo-app'
+             sh 'pwd'
+             sh '/usr/bin/sudo mv * /opt/checkout'
+         }
+       }  
+     stage('Build the Repo') {
+         steps {
+             sh 'cd /opt/checkout && /usr/bin/sudo npm install && /usr/bin/sudo npm run build'
+             sh '/usr/bin/sudo cp /home/ubuntu/ecosystem/ecosystem.config.js /opt/checkout/build'
+         }
+       } 
+       
+     stage('Upload & Deploy the builded code') {
+         steps {
+            sh '/usr/bin/sudo mv /opt/checkout/build /opt/deployment/react'
+            sh '/usr/bin/sudo ln -s /opt/deployment/react/build/* /var/lib/jenkins/workspace/pipeline/'
+            s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'react-todo-app-1', excludedFile: '', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: false, selectedRegion: 'ap-south-1', showDirectlyInBrowser: false, sourceFile: '**/build/*', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false]], pluginFailureResultConstraint: 'FAILURE', profileName: 'react-todo-app', userMetadata: []
+            sh '/usr/bin/sudo rm -rf /var/lib/jenkins/workspace/build'
+            sh '/usr/bin/sudo /usr/bin/pm2 start /opt/deployment/react/build/ecosystem.config.js'
+         }
+     }
+     
+    }
+}
