@@ -1,0 +1,25 @@
+###DOCKERFILE FOR PYTHON FLASK APP
+
+FROM ubuntu:22.04
+
+RUN sudo apt update -y
+RUN sudo apt install git -y
+RUN sudo apt install python-is-python3 -y
+RUN sudo apt install pip -y
+RUN sudo pip install flask
+RUN sudo pip install flask-sqlalchemy 
+
+RUN mkdir -p /python/app
+WORKDIR /python/app/
+
+###ASSUMING THE GIT CLONE FROM THE REPO ON YOUR LOCALHOST IN /home/ubuntu/todo_task
+
+COPY ./todo_task /python/app/
+
+###EXPOSING THE PORT
+EXPOSE 8027
+
+###STARTING THE CONTAINER
+CMD ["/usr/bin/python", "app.py"]
+
+----------END OF DOCKERFILE---------------------
