@@ -1,0 +1,18 @@
+FROM node:latest
+RUN apt update -y
+RUN apt-get install git -y
+RUN mkdir -p /opt/checkout/
+RUN mkdir -p /opt/deployment/react
+WORKDIR /opt/checkout/
+RUN git clone https://github.com/kabirbaidhya/react-todo-app
+WORKDIR react-todo-app
+RUN npm install
+RUN npm run build
+RUN mv build /opt/deployment/react
+WORKDIR /opt/deployment/react/build
+RUN pwd
+COPY ecosystem/ecosystem.config.js /opt/deployment/react/build
+RUN npm install pm2@latest -g -y
+RUN npm install serve@latest -g -y
+EXPOSE 3000
+CMD ["pm2", "start", "ecosystem.config.js"]
